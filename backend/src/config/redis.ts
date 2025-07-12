@@ -11,7 +11,6 @@ export async function connectRedis(): Promise<void> {
       url: process.env.REDIS_URL || 'redis://localhost:6379',
       socket: {
         connectTimeout: 10000,
-        lazyConnect: true,
       },
     });
 

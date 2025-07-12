@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { queryOne } from '../config/database';
-import { User } from '@/types';
+import { User } from '../../../shared/types';
 
 // Extend Express Request interface to include user
 declare global {

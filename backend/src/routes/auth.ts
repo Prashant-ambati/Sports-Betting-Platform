@@ -4,7 +4,7 @@ import { body, validationResult } from 'express-validator';
 import { queryOne, query } from '../config/database';
 import { generateToken } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
-import { RegisterRequest, LoginRequest, AuthResponse } from '@/types';
+import { RegisterRequest, LoginRequest, AuthResponse } from '../../../shared/types';
 
 const router = Router();
 
@@ -79,14 +79,14 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
       token
     };
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: response,
       message: 'User registered successfully'
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to register user'
     });
@@ -147,14 +147,14 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
       token
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: response,
       message: 'Login successful'
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to login'
     });
@@ -162,7 +162,7 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 });
 
 // Logout (client-side token removal)
-router.post('/logout', (req: Request, res: Response) => {
+router.post('/logout', (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Logout successful'
@@ -203,7 +203,7 @@ router.get('/me', async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         id: user.id,
@@ -219,7 +219,7 @@ router.get('/me', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to get user profile'
     });

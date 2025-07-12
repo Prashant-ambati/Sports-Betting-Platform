@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -8,8 +8,7 @@ export interface AppError extends Error {
 export const errorHandler = (
   error: AppError,
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): void => {
   const statusCode = error.statusCode || 500;
   const message = error.message || 'Internal Server Error';

@@ -212,4 +212,10 @@ export interface PlatformStats {
   totalBets: number;
   totalVolume: number;
   activeEvents: number;
+  recentActivity: Array<{
+    type: string;
+    userId: string;
+    amount: number;
+    timestamp: Date;
+  }>;
 } 

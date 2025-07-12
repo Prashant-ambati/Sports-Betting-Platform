@@ -15,13 +15,8 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import AdminRoute from '@/components/AdminRoute'
 
 function App() {
-  const { user, checkAuth } = useAuthStore()
+  const { user } = useAuthStore()
   const { connect } = useWebSocket()
-
-  useEffect(() => {
-    // Check if user is authenticated on app load
-    checkAuth()
-  }, [checkAuth])
 
   useEffect(() => {
     // Connect to WebSocket if user is authenticated
@@ -40,22 +35,24 @@ function App() {
         {/* Protected routes */}
         <Route path="/" element={
           <ProtectedRoute>
-            <Layout />
+            <Layout>
+              <Routes>
+                <Route index element={<Home />} />
+                <Route path="events" element={<Events />} />
+                <Route path="events/:id" element={<EventDetail />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="bets" element={<Bets />} />
+                
+                {/* Admin routes */}
+                <Route path="admin" element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                } />
+              </Routes>
+            </Layout>
           </ProtectedRoute>
-        }>
-          <Route index element={<Home />} />
-          <Route path="events" element={<Events />} />
-          <Route path="events/:id" element={<EventDetail />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="bets" element={<Bets />} />
-          
-          {/* Admin routes */}
-          <Route path="admin" element={
-            <AdminRoute>
-              <Admin />
-            </AdminRoute>
-          } />
-        </Route>
+        } />
       </Routes>
     </div>
   )

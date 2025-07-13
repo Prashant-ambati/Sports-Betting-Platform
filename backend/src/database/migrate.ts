@@ -1,148 +1,142 @@
-import { query } from '../config/database';
+import { pool, connectDatabase } from '../config/database';
 
-const createTables = async (): Promise<void> => {
+async function createTables() {
   try {
-    console.log('Starting database migration...');
+    console.log('🔄 Starting database migration...');
 
-    // Create users table
-    await query(`
+    // Users table
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        username VARCHAR(50) UNIQUE NOT NULL,
+        username VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
-        first_name VARCHAR(50) NOT NULL,
-        last_name VARCHAR(50) NOT NULL,
-        balance DECIMAL(10,2) DEFAULT 1000.00,
-        role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-        active BOOLEAN DEFAULT true,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        balance DECIMAL(10,2) DEFAULT 0.00,
+        role VARCHAR(20) DEFAULT 'user',
+        is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create events table
-    await query(`
+    // Events table
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS events (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         description TEXT,
-        sport VARCHAR(50) NOT NULL,
+        sport VARCHAR(100) NOT NULL,
         start_time TIMESTAMP NOT NULL,
-        end_time TIMESTAMP NOT NULL,
-        status VARCHAR(20) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'live', 'completed', 'cancelled')),
-        home_odds DECIMAL(5,2) NOT NULL,
-        away_odds DECIMAL(5,2) NOT NULL,
-        draw_odds DECIMAL(5,2),
+        end_time TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'upcoming',
+        odds_home DECIMAL(5,2),
+        odds_away DECIMAL(5,2),
+        odds_draw DECIMAL(5,2),
+        home_team VARCHAR(100) NOT NULL,
+        away_team VARCHAR(100) NOT NULL,
         home_score INTEGER DEFAULT 0,
         away_score INTEGER DEFAULT 0,
-        winner VARCHAR(10) CHECK (winner IN ('home', 'away', 'draw')),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create bets table
-    await query(`
+    // Bets table
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS bets (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-        amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
-        odds DECIMAL(5,2) NOT NULL,
-        prediction VARCHAR(10) NOT NULL CHECK (prediction IN ('home', 'away', 'draw')),
-        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'won', 'lost', 'cancelled')),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+        bet_type VARCHAR(20) NOT NULL,
+        bet_amount DECIMAL(10,2) NOT NULL,
         potential_winnings DECIMAL(10,2) NOT NULL,
-        actual_winnings DECIMAL(10,2),
-        placed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        settled_at TIMESTAMP,
+        odds DECIMAL(5,2) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create transactions table
-    await query(`
+    // Transactions table
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS transactions (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'withdrawal', 'bet', 'win', 'refund')),
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(20) NOT NULL,
         amount DECIMAL(10,2) NOT NULL,
         description TEXT,
-        balance_before DECIMAL(10,2) NOT NULL,
-        balance_after DECIMAL(10,2) NOT NULL,
+        reference_id INTEGER,
+        reference_type VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create odds_history table for tracking odds changes
-    await query(`
-      CREATE TABLE IF NOT EXISTS odds_history (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-        home_odds DECIMAL(5,2) NOT NULL,
-        away_odds DECIMAL(5,2) NOT NULL,
-        draw_odds DECIMAL(5,2),
-        recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Create indexes for better performance
-    await query(`
-      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-      CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-      CREATE INDEX IF NOT EXISTS idx_events_sport ON events(sport);
-      CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
-      CREATE INDEX IF NOT EXISTS idx_events_start_time ON events(start_time);
-      CREATE INDEX IF NOT EXISTS idx_bets_user_id ON bets(user_id);
-      CREATE INDEX IF NOT EXISTS idx_bets_event_id ON bets(event_id);
-      CREATE INDEX IF NOT EXISTS idx_bets_status ON bets(status);
-      CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
-      CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
-      CREATE INDEX IF NOT EXISTS idx_odds_history_event_id ON odds_history(event_id);
-    `);
-
-    // Create updated_at trigger function
-    await query(`
-      CREATE OR REPLACE FUNCTION update_updated_at_column()
-      RETURNS TRIGGER AS $$
-      BEGIN
-        NEW.updated_at = CURRENT_TIMESTAMP;
-        RETURN NEW;
-      END;
-      $$ language 'plpgsql';
-    `);
-
-    // Create triggers for updated_at
-    await query(`
-      CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-      
-      CREATE TRIGGER update_events_updated_at BEFORE UPDATE ON events
-        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-      
-      CREATE TRIGGER update_bets_updated_at BEFORE UPDATE ON bets
-        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-    `);
-
-    console.log('✅ Database migration completed successfully');
+    console.log('✅ Database migration completed successfully!');
   } catch (error) {
     console.error('❌ Database migration failed:', error);
     throw error;
   }
-};
+}
+
+async function seedData() {
+  try {
+    console.log('🔄 Seeding initial data...');
+
+    // Create admin user
+    const adminPassword = 'admin123'; // In production, use a secure password
+    const adminPasswordHash = await import('bcryptjs').then(bcrypt => 
+      bcrypt.hash(adminPassword, 10)
+    );
+
+    await pool.query(`
+      INSERT INTO users (email, username, password_hash, first_name, last_name, role, balance)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (email) DO NOTHING
+    `, ['admin@sportsbetting.com', 'admin', adminPasswordHash, 'Admin', 'User', 'admin', 10000.00]);
+
+    // Create sample events
+    await pool.query(`
+      INSERT INTO events (title, description, sport, start_time, home_team, away_team, odds_home, odds_away, odds_draw)
+      VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9),
+        ($10, $11, $12, $13, $14, $15, $16, $17, $18),
+        ($19, $20, $21, $22, $23, $24, $25, $26, $27)
+      ON CONFLICT DO NOTHING
+    `, [
+      'Manchester United vs Liverpool', 'Premier League clash', 'Football', 
+      new Date(Date.now() + 24 * 60 * 60 * 1000), 'Manchester United', 'Liverpool', 2.50, 2.80, 3.20,
+      'Lakers vs Warriors', 'NBA Western Conference', 'Basketball',
+      new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'Lakers', 'Warriors', 1.80, 2.10, null,
+      'Djokovic vs Nadal', 'Wimbledon Final', 'Tennis',
+      new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), 'Djokovic', 'Nadal', 1.90, 1.90, null
+    ]);
+
+    console.log('✅ Initial data seeded successfully!');
+  } catch (error) {
+    console.error('❌ Data seeding failed:', error);
+    throw error;
+  }
+}
+
+async function runMigration() {
+  try {
+    await connectDatabase();
+    await createTables();
+    await seedData();
+    console.log('🎉 Database setup completed!');
+  } catch (error) {
+    console.error('❌ Database setup failed:', error);
+    process.exit(1);
+  } finally {
+    await pool.end();
+  }
+}
 
 // Run migration if this file is executed directly
 if (require.main === module) {
-  createTables()
-    .then(() => {
-      console.log('Migration completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Migration failed:', error);
-      process.exit(1);
-    });
+  runMigration();
 }
 
-export default createTables; 
+export { runMigration }; 

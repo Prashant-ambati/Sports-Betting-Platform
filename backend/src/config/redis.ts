@@ -58,11 +58,16 @@ export async function getCache<T>(key: string): Promise<T | null> {
   const client = getRedisClient();
   const value = await client.get(key);
   
-  if (value) {
-    return JSON.parse(value) as T;
+  if (!value) {
+    return null;
   }
   
-  return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    console.error('Error parsing cached value:', error);
+    return null;
+  }
 }
 
 export async function deleteCache(key: string): Promise<void> {

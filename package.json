@@ -1,41 +1,15 @@
 {
   "name": "sports-betting-platform",
   "version": "1.0.0",
-  "description": "A comprehensive sports betting platform with real-time odds and secure betting",
-  "main": "index.js",
+  "description": "A comprehensive sports betting platform with backend and frontend",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
     "build": "cd backend && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "db:migrate": "cd backend && npm run db:migrate",
-    "db:seed": "cd backend && npm run db:seed",
-    "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "lint": "npm run lint:backend && npm run lint:frontend",
-    "lint:backend": "cd backend && npm run lint",
-    "lint:frontend": "cd frontend && npm run lint",
-    "start": "cd backend && npm start"
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "install-deps": "cd backend && npm install",
+    "postinstall": "npm run install-deps"
   },
-  "keywords": [
-    "sports-betting",
-    "real-time",
-    "gambling",
-    "nodejs",
-    "react",
-    "typescript"
-  ],
-  "author": "Sports Betting Platform Team",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  }
+  "keywords": ["sports", "betting", "platform", "nodejs", "react"],
+  "author": "Your Name",
+  "license": "MIT"
 } 

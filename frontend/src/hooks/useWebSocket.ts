@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/stores/authStore';
+import { API_CONFIG } from '@/config/api';
 
 interface UseWebSocketOptions {
   onOddsUpdate?: (data: any) => void;
@@ -15,7 +16,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const connect = useCallback(() => {
     if (socketRef.current?.connected) return;
 
-    const socket = io('http://localhost:3001', {
+    const socket = io(API_CONFIG.WS_URL, {
       transports: ['websocket'],
       autoConnect: true,
     });

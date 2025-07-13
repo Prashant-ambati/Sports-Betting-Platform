@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User } from '../../../shared/types';
+import { apiCall, API_ENDPOINTS } from '../config/api';
 
 interface AuthState {
   user: User | null;
@@ -31,19 +32,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/auth/login', {
+      const data = await apiCall(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
 
       const { user, token } = data.data;
       localStorage.setItem('token', token);
@@ -66,19 +58,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (userData) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/auth/register', {
+      const data = await apiCall(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(userData),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
 
       const { user, token } = data.data;
       localStorage.setItem('token', token);

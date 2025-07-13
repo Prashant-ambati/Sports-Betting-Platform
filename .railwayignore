@@ -8,4 +8,5 @@ README.md
 .nyc_output
 coverage
 .cache
-*.log 
+*.log
+docker-compose.yml 

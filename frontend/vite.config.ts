@@ -1,6 +1,12 @@
+// @ts-expect-error: Node.js types for ESM imports
+import { fileURLToPath } from 'url';
+// @ts-expect-error: Node.js types for ESM imports
+import path from 'path';
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -31,7 +37,8 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: '../backend/public',
+    emptyOutDir: true,
     sourcemap: true,
   },
 }) 

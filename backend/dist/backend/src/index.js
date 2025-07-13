@@ -12,6 +12,7 @@ const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const path_1 = __importDefault(require("path"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const events_1 = __importDefault(require("./routes/events"));
 const bets_1 = __importDefault(require("./routes/bets"));
@@ -48,6 +49,7 @@ app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(limiter);
+app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 app.get('/health', (_req, res) => {
     res.json({
         status: 'OK',
@@ -60,6 +62,9 @@ app.use('/api/events', events_1.default);
 app.use('/api/bets', auth_2.authenticateToken, bets_1.default);
 app.use('/api/users', auth_2.authenticateToken, users_1.default);
 app.use('/api/admin', auth_2.authenticateToken, admin_1.default);
+app.get('*', (_req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '../public', 'index.html'));
+});
 (0, socket_1.setupWebSocket)(io);
 app.use(notFound_1.notFound);
 app.use(errorHandler_1.errorHandler);

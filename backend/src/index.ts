@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -60,6 +61,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
 
+// Serve static frontend
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ 
@@ -75,6 +79,11 @@ app.use('/api/events', eventRoutes);
 app.use('/api/bets', authenticateToken, betRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
 app.use('/api/admin', authenticateToken, adminRoutes);
+
+// Fallback to index.html for SPA
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
 
 // WebSocket setup
 setupWebSocket(io);

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== Starting build process ==="
+echo "=== Starting Railway build process ==="
 echo "Current directory: $(pwd)"
 echo "Node version: $(node --version)"
 echo "NPM version: $(npm --version)"

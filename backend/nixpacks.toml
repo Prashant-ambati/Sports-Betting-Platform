@@ -5,7 +5,7 @@ nixPkgs = ["nodejs", "npm"]
 cmds = ["npm install --include=dev"]
 
 [phases.build]
-cmds = ["chmod +x build.sh", "./build.sh"]
+cmds = ["npm run build"]
 
 [start]
 cmd = "npm start"

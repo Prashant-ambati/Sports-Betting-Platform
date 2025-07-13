@@ -27,8 +27,13 @@ Go to your backend service → "Variables" tab and add:
 ```bash
 NODE_ENV=production
 PORT=3001
-JWT_SECRET=318a9c7c27ca86e4788165df692f9cf68e016bcac1e72d60b931ac235f940dabae8974e19b9c420145c832c4b69267e851799f05506c3d9e73d3826faa12cab2
+JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
 CORS_ORIGIN=*
+```
+
+**Important**: Generate a new JWT secret key using:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
 ### Step 3: Connect Database

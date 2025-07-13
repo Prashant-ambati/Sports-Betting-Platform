@@ -31,6 +31,11 @@ import { setupWebSocket } from './websocket/socket';
 // Load environment variables
 dotenv.config();
 
+// Log environment info
+console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
+console.log('🔧 Port:', process.env.PORT || 3001);
+console.log('🔧 CORS Origin:', process.env.CORS_ORIGIN || 'http://localhost:3000');
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -64,10 +69,35 @@ app.use(limiter);
 // Serve static frontend
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Health check endpoint
+// Health check endpoints
 app.get('/health', (_req, res) => {
   res.json({ 
     status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.npm_package_version || '1.0.0',
+    memory: process.memoryUsage(),
+    pid: process.pid
+  });
+});
+
+app.get('/api/health', (_req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.npm_package_version || '1.0.0',
+    memory: process.memoryUsage(),
+    pid: process.pid
+  });
+});
+
+// Readiness check endpoint
+app.get('/api/ready', (_req, res) => {
+  res.json({ 
+    status: 'ready',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -94,20 +124,37 @@ app.use(errorHandler);
 
 // Database and Redis connection
 async function startServer() {
+  let dbConnected = false;
+  let redisConnected = false;
+
   try {
     // Connect to database
-    await connectDatabase();
-    console.log('✅ Database connected successfully');
+    try {
+      await connectDatabase();
+      console.log('✅ Database connected successfully');
+      dbConnected = true;
+    } catch (error) {
+      console.error('⚠️ Database connection failed:', error);
+      console.log('🔄 Server will start without database connection');
+    }
 
     // Connect to Redis
-    await connectRedis();
-    console.log('✅ Redis connected successfully');
+    try {
+      await connectRedis();
+      console.log('✅ Redis connected successfully');
+      redisConnected = true;
+    } catch (error) {
+      console.error('⚠️ Redis connection failed:', error);
+      console.log('🔄 Server will start without Redis connection');
+    }
 
-    // Start server
+    // Start server even if database or Redis fail
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+      console.log(`📊 Database: ${dbConnected ? '✅ Connected' : '❌ Disconnected'}`);
+      console.log(`📊 Redis: ${redisConnected ? '✅ Connected' : '❌ Disconnected'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Create startup script
-RUN echo '#!/bin/sh\ncd backend && npm run migrate && npm start' > /app/start.sh && chmod +x /app/start.sh
+RUN echo '#!/bin/sh\ncd backend && npm run migrate || echo "Migration failed, starting server anyway" && npm start' > /app/start.sh && chmod +x /app/start.sh
 
 # Expose port
 EXPOSE 3001

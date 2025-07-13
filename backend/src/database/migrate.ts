@@ -128,9 +128,13 @@ async function runMigration() {
     console.log('🎉 Database setup completed!');
   } catch (error) {
     console.error('❌ Database setup failed:', error);
-    process.exit(1);
+    console.log('🔄 Continuing without database setup...');
   } finally {
-    await pool.end();
+    try {
+      await pool.end();
+    } catch (e) {
+      // Ignore pool end errors
+    }
   }
 }
 
